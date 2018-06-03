@@ -1,0 +1,25 @@
+{
+    "name": "yurich/oauth2",
+    "type": "project",
+    "require": {
+        "nezamy/route": "^1.1",
+        "illuminate/database": "^5.5",
+        "philo/laravel-blade": "3.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Web\\": "web/",
+            "Cli\\": "cli/"
+        },
+        "files": [
+            "helpers.php"
+        ]
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "yurich",
+            "email": "Yurich84@gmail.com"
+        }
+    ]
+}
