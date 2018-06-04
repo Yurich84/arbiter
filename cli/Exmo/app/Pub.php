@@ -35,6 +35,7 @@ class Pub {
     {
         $type = '=>' ? 'ask' : '<=' ? 'bid' : '';
 
+        // план : добавить проверку
         return current($this->order_book->{$pair[0].'_'.$pair[2]}->{$type});
     }
 

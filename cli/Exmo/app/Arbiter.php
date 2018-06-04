@@ -2,6 +2,8 @@
 
 namespace Cli\Exmo\App;
 
+use Models\Log;
+
 class Arbiter
 {
 
@@ -79,28 +81,29 @@ class Arbiter
             $this->circle->pair3[0],
             $this->circle->pair3[2],
         ];
-        $circle_folder = implode('_', array_unique($cf));
+        $trio = implode('_', array_unique($cf));
 
         $add_text = '';
         $color = 'cyan';
         $bg_color = null;
         if($profit > 0) {
             $color = 'red';
-            $now = (new DateTime())->format('Y-m-d H:i:s');
             $add_text = ' - min ' . $min . ' USD';
             if($profit > 0.2) {
                 $color = 'cyan';
                 $bg_color = 'red';
-                // пишем в файл
-                $fileName = (new DateTime())->format('Y-m-d') . '.txt';
-                $fp = fopen('./logs/' . LOG_FOLDER . '/' . $circle_folder . '/' . $fileName, 'a');
-                fwrite($fp, $now . ' | ' . $profit . ' %' . $add_text . "\n");
-                fclose($fp);
+                // пишем в базу
+                Log::create([
+                    'exchange' => EXCHANGE,
+                    'trio' => $trio,
+                    'profit' => $profit,
+                    'min_order' => $min,
+                    'created_at' => (new DateTime())->format('Y-m-d H:i:s')
+                ]);
             }
         }
-
-        echo $this->colors->getColoredString($profit . ' %' . $add_text, $color, $bg_color);
-        echo PHP_EOL;
+        echo "\033[50D";      // Move 5 characters backward
+        echo str_pad($this->colors->getColoredString('Доход арбитража ' . $trio . ' ' . $profit . ' % ' . $add_text, $color, $bg_color), 50, ' ', STR_PAD_LEFT);
     }
 
 }
