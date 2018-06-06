@@ -30,7 +30,7 @@ if (!function_exists('getRate')) {
 
             $rate = null;
 
-            if( $RATE = \Models\Rate::where('currency', $currency)->first() ) {
+            if( $RATE = \Models\Rate::firstOrNew(['currency' => $currency]) ) {
                 $updated_at = StrToTime ( $RATE->updated_at );
                 $now = StrToTime ( 'now' );
                 $diff_hours = ($now - $updated_at) / ( 60 * 60 );
@@ -44,11 +44,10 @@ if (!function_exists('getRate')) {
                 $rate = $curr->ticker->price;
 
                 // пишем в базу
-                \Models\Rate::create([
-                    'currency' => $currency,
-                    'price' => $rate,
-                    'updated_at' => (new DateTime())->format('Y-m-d H:i:s'),
-                ]);
+                $RATE->currency = $currency;
+                $RATE->price = $rate;
+                $RATE->updated_at = (new DateTime())->format('Y-m-d H:i:s');
+                $RATE->save();
 
             }
 
