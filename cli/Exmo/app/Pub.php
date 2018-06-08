@@ -34,7 +34,7 @@ class Pub {
     /**
      * Получаем последнюю цену по которой хотят продать/купить
      * @param $pair
-     * @param $type
+     * @param $direction
      * @return mixed
      */
     public function getOrder($pair, $direction)

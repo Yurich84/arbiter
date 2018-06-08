@@ -2,7 +2,9 @@
 
 namespace Models;
 
-class Current extends \Illuminate\Database\Eloquent\Model
+use Illuminate\Database\Eloquent\Model;
+
+class Current extends Model
 {
     protected $guarded = ['id'];
     public $timestamps = false;

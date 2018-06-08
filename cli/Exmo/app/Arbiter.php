@@ -2,7 +2,9 @@
 
 namespace Cli\Exmo\App;
 
+use Models\Current;
 use Models\Log;
+use Models\Order;
 
 class Arbiter
 {
@@ -80,6 +82,9 @@ class Arbiter
     {
         $auth = new Auth(KEY, SECRET);
 
+        $log_id = Log::whereRaw('id = (select max(`id`) from logs)')->first()->id;
+
+        $comment = '';
         $deals = [];
         if($revers) {
             ksort($profit->prices);
@@ -120,7 +125,11 @@ class Arbiter
                 $prev_among = $among;
             }
 
-            echo $among . ' ' . explode('_', $order->pair)[0] . $sdelka . $among . '*' . $order->price . ' = ' . $among * $order->price . ' ' . explode('_', $order->pair)[1] . PHP_EOL;
+            $among *= (1 - FEE); // враховуємо комісію
+
+            $comment .= $among . ' ' . explode('_', $order->pair)[0] . $sdelka . $among . '*' . $order->price . ' = ' . $among * $order->price . ' ' . explode('_', $order->pair)[1] . '<br />';
+
+            // план: подсчет заработаного за цикл
         }
 
 
@@ -131,8 +140,18 @@ class Arbiter
                 if(GO) {
                     $auth->query("order_create", $deal);
                 }
-                // план: запис в базу ордера
+
+                // запис в базу ордера
+                $order = $deal;
+                $order['among'] = $deal['quantity'];
+                $order['log_id'] = $log_id;
+                unset($order['quantity']);
+
+                Order::create($order);
+
             }
+
+            Log::find($log_id)->update(['comment' => $comment]);
 
         }
 
@@ -142,10 +161,10 @@ class Arbiter
 
     /**
      * Виводимо і логіруємо статистику
-     * @param $profit
+     * @param $percent
      * @param $min
      */
-    protected function log($profit, $min)
+    protected function log($percent, $min)
     {
         $cf = [
             $this->circle->pair1[0],
@@ -161,23 +180,29 @@ class Arbiter
         $color = 'cyan';
         $bg_color = null;
 
-        if($profit > 0.2) {
+        if($percent > 0.2) {
             $add_text = ' - min ' . $min . ' USD';
             $color = 'cyan';
             $bg_color = 'red';
             // пишем в базу
             Log::create([
-                'exchange' => EXCHANGE,
+                'broker' => EXCHANGE,
                 'trio' => $trio,
-                'profit' => $profit,
+                'percent' => $percent,
                 'min_order' => $min,
                 'created_at' => (new \DateTime())->format('Y-m-d H:i:s')
             ]);
         }
 
-        // план: пишем в таблицу currents текущее состояние бота
+        // пишем в таблицу currents текущее состояние бота
+        $current = Current::firstOrNew(['broker' => EXCHANGE, 'trio' => $trio,]);
+        $current->percent = $percent;
+        $current->min_order = $min;
+        $current->updated_at = (new \DateTime())->format('Y-m-d H:i:s');
+        $current->save();
+
         echo "\033[70D";      // Move 5 characters backward
-        echo str_pad($this->colors->getColoredString('Доход арбитража ' . $trio . ' ' . $profit . ' % ' . $add_text, $color, $bg_color), 70, ' ', STR_PAD_LEFT);
+        echo str_pad($this->colors->getColoredString('Доход арбитража ' . $trio . ' ' . $percent . ' % ' . $add_text, $color, $bg_color), 70, ' ', STR_PAD_LEFT);
     }
 
 }

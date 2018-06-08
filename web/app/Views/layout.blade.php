@@ -8,6 +8,22 @@
 
 		<!-- Bootstrap CSS -->
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+        <script>
+            if(typeof(EventSource)!=="undefined") {
+                //создаем объект, и указываем где лежит серверная часть обработчика
+                var eSource = new EventSource("http://arbiter/ajax_current/");
+                //ждем сообщения с данными
+                eSource.onmessage = function(event) {
+                    //запись обновлённых данных на страницу
+                    document.getElementById("serverdata").innerHTML = event.data;
+                    console.log(event);
+                };
+            }
+            else {
+                document.getElementById("serverdata").innerHTML="Ошибочка! Твой браузер не поддерживает server-sent события.";
+            }
+
+        </script>
     </head>
 	<body>
 

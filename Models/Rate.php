@@ -2,7 +2,9 @@
 
 namespace Models;
 
-class Rate extends \Illuminate\Database\Eloquent\Model
+use Illuminate\Database\Eloquent\Model;
+
+class Rate extends Model
 {
     protected $guarded = ['id'];
     public $timestamps = false;

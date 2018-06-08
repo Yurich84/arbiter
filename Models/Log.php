@@ -2,8 +2,19 @@
 
 namespace Models;
 
-class Log extends \Illuminate\Database\Eloquent\Model
+use Illuminate\Database\Eloquent\Model;
+
+class Log extends Model
 {
     protected $guarded = ['id'];
     public $timestamps = false;
+
+    /**
+     * Ордери для даной сдєлкі
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function Orders()
+    {
+        return $this->hasMany(Order::class);   //связь один к одному
+    }
 }
