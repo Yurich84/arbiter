@@ -1,6 +1,11 @@
 {
     "name": "yurich/oauth2",
     "type": "project",
+    "config": {
+        "platform": {
+          "php": "7.1.11"
+      }
+    },
     "require": {
         "nezamy/route": "^1.1",
         "illuminate/database": "^5.5",
@@ -8,9 +13,9 @@
     },
     "autoload": {
         "psr-4": {
-            "Models\\": "models/",
-            "Web\\": "web/",
-            "Cli\\": "cli/"
+            "Models\\": "Models/",
+            "Web\\": "Web/",
+            "Cli\\": "Cli/"
         },
         "files": [
             "helpers.php"

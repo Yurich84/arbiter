@@ -212,6 +212,12 @@ class Arbiter
 
         // пишем в таблицу currents текущее состояние бота
         $current = Current::firstOrNew(['broker' => EXCHANGE, 'trio' => $trio,]);
+
+        if($current->max_percent > $percent) { // ничого не робим
+        } else {
+            $current->max_percent = $percent;
+        }
+
         $current->percent = $percent;
         $current->min_order = $min;
         $current->updated_at = (new \DateTime())->format('Y-m-d H:i:s');
