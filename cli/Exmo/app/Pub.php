@@ -39,9 +39,8 @@ class Pub {
      */
     public function getOrder($pair, $direction)
     {
-        $type = ($pair[1] == '=>') ? 'bid' : 'ask';
         if($this->order_book) {
-            return current($this->order_book->{$pair[0].'_'.$pair[2]}->{$type});
+            return $this->order_book->{$pair[0].'_'.$pair[2]};
         } else {
             return false;
         }
@@ -63,19 +62,23 @@ class Pub {
         $i = 0;
         foreach ($circle as $pair) {
             if($revers) {
-                $pow = -1;
+                $pow = 1;
                 $direction = ($pair[1] == '=>') ? '<=' : '=>';
             } else {
-                $pow = 1;
+                $pow = -1;
                 $direction = $pair[1];
             }
 
+            $type = ($direction == '=>') ? 'bid' : 'ask';
+
             $order[$i] = [];
             if ($get_order[$i] = $this->getOrder($pair, $direction)) {
-                $order[$i]['amount'] = getRate($pair[0]); // мінімальная ставка USD
-                $order[$i]['price'] = current($get_order[$i]);
+                $order[$i]['amount'] = getRate($pair[0]) * (float)current($get_order[$i]->{$type})[1]; // мінімальная ставка USD
+                $order[$i]['price'] = current(current($get_order[$i]->{$type}));
+                $order[$i]['ask'] = json_encode(current($get_order[$i]->ask));
+                $order[$i]['bid'] = json_encode(current($get_order[$i]->bid));
                 $order[$i]['direction'] = $direction;
-                $order[$i]['pow'] = ($pair[1] == '=>') ? 1 : -1;
+                $order[$i]['pow'] = ($pair[1] == '=>') ? -1 : 1;
             }
 
             $i++;
@@ -111,17 +114,23 @@ class Pub {
                     $a => (object) [
                         'pair' => $circle->pair1[0] . '_' . $circle->pair1[2],
                         'direction' => $order[0]['direction'],
-                        'price' => $order[0]['price']
+                        'ask' => $order[0]['ask'],
+                        'bid' => $order[0]['bid'],
+                        'price' => $order[0]['price'],
                     ],
                     $b => (object) [
                         'pair' => $circle->pair2[0] . '_' . $circle->pair2[2],
                         'direction' => $order[1]['direction'],
-                        'price' => $order[1]['price']
+                        'ask' => $order[1]['ask'],
+                        'bid' => $order[1]['bid'],
+                        'price' => $order[1]['price'],
                     ],
                     $c => (object) [
                         'pair' => $circle->pair3[0] . '_' . $circle->pair3[2],
                         'direction' => $order[2]['direction'],
-                        'price' => $order[2]['price']
+                        'ask' => $order[2]['ask'],
+                        'bid' => $order[2]['bid'],
+                        'price' => $order[2]['price'],
                     ]
                 ]
             ];

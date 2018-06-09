@@ -6,7 +6,7 @@
 
     <table class="table table-striped table-dark">
         <thead>
-            <td>Бижа</td>
+            <td>Биржа</td>
             <td>Тройка</td>
             <td>Профіт %</td>
             <td>Мин сумма</td>

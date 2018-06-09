@@ -40,6 +40,7 @@ class Arbiter
     {
         $PUB = new Pub($this->circle);
 
+        // находим профіт
         $profit_R = $PUB->getProfit($this->circle);
         $profit_L = $PUB->getProfit($this->circle, true);
 
@@ -52,7 +53,7 @@ class Arbiter
                 $min = $profit_L->min;
             }
 
-            $this->log($profit, $min);
+            $this->log($profit, $min); // dbdjдим на екран або в базу
 
             /*------------------------------------------------------
              * якщо профіт більше заданого то виставляємо три ордери
@@ -89,7 +90,6 @@ class Arbiter
         if($revers) {
             ksort($profit->prices);
         }
-//        dd($profit->prices);
         $prev_among = 0;
         foreach ($profit->prices as $order) {
 
@@ -112,9 +112,14 @@ class Arbiter
                 $among_usd = min(DEAL_AMONG, $profit->min);
                 $among = $among_usd / getRate(current(explode('_', $order->pair)));
             }
+
+            $among *= (1 - FEE); // враховуємо комісію
+
             $deals[] = [
                 "pair" => $order->pair,
                 "quantity" => $among,
+                "ask" => $order->ask,
+                "bid" => $order->bid,
                 "price" => $order->price,
                 "type" => $type
             ];
@@ -125,8 +130,6 @@ class Arbiter
                 $prev_among = $among;
             }
 
-            $among *= (1 - FEE); // враховуємо комісію
-
             $comment .= $among . ' ' . explode('_', $order->pair)[0] . $sdelka . $among . '*' . $order->price . ' = ' . $among * $order->price . ' ' . explode('_', $order->pair)[1] . '<br />';
 
             // план: подсчет заработаного за цикл
@@ -135,10 +138,13 @@ class Arbiter
 
         // проводимо три сдєлкі
         if($deals[0] && $deals[1] && $deals[2]) {
-
+            Log::find($log_id)->update(['comment' => $comment]);
             foreach ($deals as $deal) {
+                $trade = $deal;
+                unset($trade['ask']);
+                unset($trade['bid']);
                 if(GO) {
-                    $auth->query("order_create", $deal);
+                    $auth->query("order_create", $trade);
                 }
 
                 // запис в базу ордера
@@ -151,8 +157,18 @@ class Arbiter
 
             }
 
-            Log::find($log_id)->update(['comment' => $comment]);
+            // Очикуемо коли закриються ордери
+            $count_orders = 3;
+            $t = 0;
+            while ($count_orders > 0 ) {
+                sleep($t);
+                $open_orders = $auth->query("user_open_orders");
+                echo "очікується $count_orders ордер " . implode(', ', array_keys($open_orders)) . PHP_EOL;
+                $count_orders = count($open_orders);
+                $t++;
+            }
 
+            die();
         }
 
 
@@ -201,8 +217,8 @@ class Arbiter
         $current->updated_at = (new \DateTime())->format('Y-m-d H:i:s');
         $current->save();
 
-        echo "\033[70D";      // Move 5 characters backward
-        echo str_pad($this->colors->getColoredString('Доход арбитража ' . $trio . ' ' . $percent . ' % ' . $add_text, $color, $bg_color), 70, ' ', STR_PAD_LEFT);
+        echo "\033[40D";      // Move 5 characters backward
+        echo str_pad($this->colors->getColoredString($trio . ' ' . $percent . ' % ' . $add_text, $color, $bg_color), 40, ' ', STR_PAD_LEFT);
     }
 
 }

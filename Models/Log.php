@@ -13,7 +13,7 @@ class Log extends Model
      * Ордери для даной сдєлкі
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function Orders()
+    public function orders()
     {
         return $this->hasMany(Order::class);   //связь один к одному
     }
